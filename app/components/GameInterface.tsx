@@ -1,4 +1,3 @@
-// components/GameInterface.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -38,7 +37,7 @@ export default function GameInterface() {
       // Small delay to make it feel more natural
       const aiDecisionTimer = setTimeout(() => {
         makeAIDecisions();
-      }, 1000);
+      }, 4000);
 
       return () => clearTimeout(aiDecisionTimer);
     }

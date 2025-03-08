@@ -248,23 +248,30 @@ export const useGameStore = create<GameState>((set, get) => ({
           let damage = 0;
 
           // Calculate damage based on attack type
-          if (
+          if (attackCard.attackType === attacker.monster.affinity) {
+            // Magical attack - monster has affinity advantage
+            damage = Math.max(
+              5, // Minimum damage
+              attacker.monster.stats.MATK * (attackCard.basePower / 100) * 1.5 - // 50% bonus for affinity match
+                defenderMonster.stats.RES
+            );
+          } else if (
             Object.values(attacker.monster.affinity).includes(
-              attackCard.attackType
+              attackCard.attackType as any
             )
           ) {
-            // Magical attack
+            // Magical attack - no affinity advantage
             damage = Math.max(
-              0,
+              5, // Minimum damage
               attacker.monster.stats.MATK * (attackCard.basePower / 100) -
-                defenderMonster.stats.RES * 1.5
+                defenderMonster.stats.RES
             );
           } else {
-            // Physical attack
+            // Physical attack (attackType is an Attribute)
             damage = Math.max(
-              0,
+              5, // Minimum damage
               attacker.monster.stats.PATK * (attackCard.basePower / 100) -
-                defenderMonster.stats.DEF * 1.5
+                defenderMonster.stats.DEF
             );
           }
 
@@ -317,9 +324,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         }
       } else {
         // Use monster's active skill
-        attackerMonster.activeSkill.execute(defenderMonster);
+        // Use monster's active skill
+        const result = attackerMonster.activeSkill.execute(defenderMonster);
         actionLog.push(
-          `${attackerMonster.name} used ${attackerMonster.activeSkill.name} on ${defenderMonster.name}!`
+          result ||
+            `${attackerMonster.name} used ${attackerMonster.activeSkill.name} on ${defenderMonster.name}!`
         );
       }
 

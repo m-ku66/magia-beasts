@@ -176,7 +176,7 @@ export const testSupportCards: SupportCard[] = [
           // We'd need a way to flag this monster as having grit active
           // This would require modifying the MonsterCard type to track effects
           // For now, we could just boost defense as a simple implementation
-          target.stats.DEF += 15;
+          target.stats.DEF += 100;
           return `${target.name} is now more resilient`;
         },
       },
