@@ -57,7 +57,7 @@ export const testMonster: MonsterCard = {
   affinity: Affinity.FIRE,
 };
 
-// Example monster card 1
+// Example monster card 2
 export const testMonster2: MonsterCard = {
   id: uuid(),
   name: "Hobgoblin",
@@ -102,7 +102,7 @@ export const testMonster2: MonsterCard = {
     },
   },
   attribute: Attribute.SLASH,
-  affinity: Affinity.FIRE,
+  affinity: Affinity.EARTH,
 };
 
 // Example attack cards
@@ -155,7 +155,7 @@ export const testSupportCards: SupportCard[] = [
         duration: 3,
         apply: (target) => {
           // Actually boost attack
-          target.stats.PATK += 10;
+          target.stats.PATK += 50;
           return `${target.name}'s attack increased by 10`;
         },
       },
@@ -176,8 +176,83 @@ export const testSupportCards: SupportCard[] = [
           // We'd need a way to flag this monster as having grit active
           // This would require modifying the MonsterCard type to track effects
           // For now, we could just boost defense as a simple implementation
-          target.stats.DEF += 100;
+          target.stats.DEF += 500;
           return `${target.name} is now more resilient`;
+        },
+      },
+    ],
+  },
+];
+
+// Example hobgoblin attack cards
+export const hobgoblinAttackCards: AttackCard[] = [
+  {
+    id: uuid(),
+    name: "Brutal Swing",
+    description: "A powerful but inaccurate attack",
+    type: CardType.ATTACK,
+    attackType: Attribute.BLUNT, // Hobgoblin uses blunt weapons
+    basePower: 90, // Higher power but...
+    uses: 2, // Fewer uses
+    effects: [
+      {
+        name: "Stun",
+        description: "May stun the target for a turn",
+        duration: 1,
+        apply: (target) => {
+          // Apply a small AGI penalty to represent stun
+          target.stats.AGI -= 5;
+          return `${target.name} is slowed by Stun effect!`;
+        },
+      },
+    ],
+  },
+  {
+    id: uuid(),
+    name: "Rage Strike",
+    description: "An attack that gets stronger as HP drops",
+    type: CardType.ATTACK,
+    attackType: Attribute.BLUNT,
+    basePower: 50,
+    uses: 3,
+  },
+];
+
+// Example hobgoblin support cards
+export const hobgoblinSupportCards: SupportCard[] = [
+  {
+    id: uuid(),
+    name: "Battlecry",
+    description: "Increases attack but lowers defense",
+    type: CardType.SUPPORT,
+    uses: 2,
+    effects: [
+      {
+        name: "Battlecry",
+        description: "Attack up, defense down",
+        duration: 2,
+        apply: (target) => {
+          target.stats.PATK += 15;
+          target.stats.DEF -= 5;
+          return `${target.name}'s attack increased and defense decreased!`;
+        },
+      },
+    ],
+  },
+  {
+    id: uuid(),
+    name: "Thick Hide",
+    description: "Temporarily increases defense",
+    type: CardType.SUPPORT,
+    uses: 2,
+    effects: [
+      {
+        name: "Thick Hide",
+        description: "Increases defense for 2 turns",
+        duration: 2,
+        apply: (target) => {
+          target.stats.DEF += 10;
+          return `${target.name}'s hide thickens, increasing defense!`;
         },
       },
     ],
@@ -197,7 +272,7 @@ export const testGameState = {
     {
       id: uuid(),
       monsters: [testMonster2], // Using same monster for testing
-      hand: [...testAttackCards, ...testSupportCards],
+      hand: [...hobgoblinAttackCards, ...hobgoblinSupportCards],
       deck: [], // Empty for now
       isAI: true,
     },
