@@ -31,8 +31,10 @@ export const testMonster: MonsterCard = {
     name: "Basic Strike",
     description: "A simple attack that costs no resources",
     execute: (target) => {
-      // Will implement this later!
-      console.log(`Using Basic Strike on ${target.name}`);
+      // Actually modify the target's HP
+      const damage = 20; // Base damage value
+      target.stats.HP = Math.max(0, target.stats.HP - damage);
+      return `Basic Strike dealt ${damage} damage to ${target.name}`;
     },
   },
   passiveSkill: {
@@ -75,10 +77,12 @@ export const testMonster2: MonsterCard = {
   },
   activeSkill: {
     name: "Club Strike",
-    description: "A simple attack that costs no resources",
+    description: "A heavy but slow attack",
     execute: (target) => {
-      // Will implement this later!
-      console.log(`Using Club Strike on ${target.name}`);
+      // Actually modify the target's HP with higher damage
+      const damage = 30; // Higher base damage
+      target.stats.HP = Math.max(0, target.stats.HP - damage);
+      return `Club Strike dealt ${damage} damage to ${target.name}`;
     },
   },
   passiveSkill: {
@@ -114,10 +118,13 @@ export const testAttackCards: AttackCard[] = [
     effects: [
       {
         name: "Burn",
-        description: "Burns the target",
+        description: "Burns the target for 5 damage",
         duration: 2,
         apply: (target) => {
-          console.log(`Applying burn to ${target.name}`);
+          // Actually apply burn damage
+          const burnDamage = 5;
+          target.stats.HP = Math.max(0, target.stats.HP - burnDamage);
+          return `Burn effect dealt ${burnDamage} damage to ${target.name}`;
         },
       },
     ],
@@ -144,10 +151,12 @@ export const testSupportCards: SupportCard[] = [
     effects: [
       {
         name: "Attack Up I",
-        description: "Boosts attack for 3 turns",
+        description: "Boosts attack by 10 for 3 turns",
         duration: 3,
         apply: (target) => {
-          console.log(`Boosting attack for ${target.name}`);
+          // Actually boost attack
+          target.stats.PATK += 10;
+          return `${target.name}'s attack increased by 10`;
         },
       },
     ],
@@ -164,7 +173,11 @@ export const testSupportCards: SupportCard[] = [
         description: "Survive the next fatal blow",
         duration: 1,
         apply: (target) => {
-          console.log(`${target.name} will survive the next fatal blow`);
+          // We'd need a way to flag this monster as having grit active
+          // This would require modifying the MonsterCard type to track effects
+          // For now, we could just boost defense as a simple implementation
+          target.stats.DEF += 15;
+          return `${target.name} is now more resilient`;
         },
       },
     ],
