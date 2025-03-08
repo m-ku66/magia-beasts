@@ -18,19 +18,34 @@ export default function GameInterface() {
     selectAction,
     startActionPhase,
     resetGame,
+    makeAIDecisions,
   } = useGameStore();
 
   const [selectedCard, setSelectedCard] = useState<{
     card: AttackCard | SupportCard | null;
     playerId: string;
     monsterId: string;
+    allowSelfTarget: boolean | null;
   } | null>(null);
 
   useEffect(() => {
     initializeGame(testGameState.players);
   }, [initializeGame]);
 
+  useEffect(() => {
+    // When it's a new turn and not the action phase, have AI make decisions
+    if (!isActionPhase && !winner) {
+      // Small delay to make it feel more natural
+      const aiDecisionTimer = setTimeout(() => {
+        makeAIDecisions();
+      }, 1000);
+
+      return () => clearTimeout(aiDecisionTimer);
+    }
+  }, [currentTurn, isActionPhase, winner, makeAIDecisions]);
+
   // Function to handle card selection
+  // Modify the handleCardSelect function to set a flag for self-targeting allowed
   const handleCardSelect = (
     playerId: string,
     monsterId: string,
@@ -40,6 +55,7 @@ export default function GameInterface() {
       card,
       playerId,
       monsterId,
+      allowSelfTarget: card && card.type === "SUPPORT", // Allow self-targeting for support cards
     });
   };
 
@@ -104,12 +120,20 @@ export default function GameInterface() {
                       ? "bg-blue-100"
                       : ""
                   } ${
-                    selectedCard && selectedCard.playerId !== player.id
+                    selectedCard &&
+                    (selectedCard.playerId !== player.id ||
+                      (selectedCard.allowSelfTarget &&
+                        selectedCard.playerId === player.id))
                       ? "hover:bg-red-100"
                       : ""
                   }`}
                   onClick={() => {
-                    if (selectedCard && selectedCard.playerId !== player.id) {
+                    if (
+                      selectedCard &&
+                      (selectedCard.playerId !== player.id ||
+                        (selectedCard.allowSelfTarget &&
+                          selectedCard.playerId === player.id))
+                    ) {
                       handleTargetSelect(player.id, monster.id);
                     }
                   }}

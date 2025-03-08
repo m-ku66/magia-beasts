@@ -9,7 +9,7 @@ import {
   type SupportCard,
 } from "../types/game";
 
-// Example monster card
+// Example monster card 1
 export const testMonster: MonsterCard = {
   id: uuid(),
   name: "Rookie Warrior",
@@ -33,6 +33,52 @@ export const testMonster: MonsterCard = {
     execute: (target) => {
       // Will implement this later!
       console.log(`Using Basic Strike on ${target.name}`);
+    },
+  },
+  passiveSkill: {
+    name: "Endurance",
+    description: "Recovers 1 STM per turn",
+    execute: (target) => {
+      // Will implement this later!
+      console.log(`Recovering STM for ${target.name}`);
+    },
+  },
+  reactionSkill: {
+    name: "Counter Stance",
+    description: "10% chance to counter physical attacks",
+    execute: (target) => {
+      // Will implement this later!
+      console.log(`Checking counter for ${target.name}`);
+    },
+  },
+  attribute: Attribute.SLASH,
+  affinity: Affinity.FIRE,
+};
+
+// Example monster card 1
+export const testMonster2: MonsterCard = {
+  id: uuid(),
+  name: "Hobgoblin",
+  type: CardType.MONSTER,
+  description: "A rookie warrior looking to prove themselves",
+  stats: {
+    HP: 130,
+    MP: 20,
+    STM: 90,
+    PATK: 40,
+    MATK: 10,
+    DEF: 30,
+    RES: 5,
+    SKILL: 20,
+    LUCK: 10,
+    AGI: 20,
+  },
+  activeSkill: {
+    name: "Club Strike",
+    description: "A simple attack that costs no resources",
+    execute: (target) => {
+      // Will implement this later!
+      console.log(`Using Club Strike on ${target.name}`);
     },
   },
   passiveSkill: {
@@ -133,12 +179,14 @@ export const testGameState = {
       monsters: [testMonster],
       hand: [...testAttackCards, ...testSupportCards],
       deck: [], // Empty for now
+      isAI: false,
     },
     {
       id: uuid(),
-      monsters: [testMonster], // Using same monster for testing
+      monsters: [testMonster2], // Using same monster for testing
       hand: [...testAttackCards, ...testSupportCards],
       deck: [], // Empty for now
+      isAI: true,
     },
   ],
 };

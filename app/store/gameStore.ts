@@ -9,6 +9,7 @@ interface Player {
   monsters: MonsterCard[];
   hand: (AttackCard | SupportCard)[];
   deck: (AttackCard | SupportCard)[];
+  isAI: boolean;
 }
 
 // Action interface to track selected actions
@@ -43,6 +44,7 @@ interface GameState {
   drawCard: (playerId: string) => void;
   endTurn: () => void;
   resetGame: () => void;
+  makeAIDecisions: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -54,8 +56,14 @@ export const useGameStore = create<GameState>((set, get) => ({
   actionLog: [],
 
   initializeGame: (players) => {
+    // Set the second player as AI by default
+    const playersWithAI = players.map((player, index) => ({
+      ...player,
+      isAI: index === 1, // First player is human, second is AI
+    }));
+
     set({
-      players,
+      players: playersWithAI,
       currentTurn: 1,
       selectedActions: [],
       isActionPhase: false,
@@ -64,9 +72,52 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
   },
 
+  makeAIDecisions: () => {
+    const { players } = get();
+
+    // Find the AI player
+    const aiPlayer = players.find((p) => p.isAI);
+    if (!aiPlayer) return;
+
+    // For each monster the AI controls
+    aiPlayer.monsters.forEach((monster) => {
+      // Find a random card to play or use active skill (30% chance)
+      const useActiveSkill = Math.random() < 0.3;
+
+      let card = null;
+      if (!useActiveSkill && aiPlayer.hand.length > 0) {
+        // Pick a random card that still has uses left
+        const usableCards = aiPlayer.hand.filter((c) => c.uses > 0);
+        if (usableCards.length > 0) {
+          card = usableCards[Math.floor(Math.random() * usableCards.length)];
+        }
+      }
+
+      // Find a target - for attack cards, target enemy; for support cards, target self
+      const isAttackCard = card && card.type === "ATTACK";
+
+      // Get human player (opponent)
+      const humanPlayer = players.find((p) => !p.isAI);
+      if (!humanPlayer || humanPlayer.monsters.length === 0) return;
+
+      // Select target based on card type
+      const targetPlayer =
+        isAttackCard || useActiveSkill ? humanPlayer : aiPlayer;
+      const targetMonster = targetPlayer.monsters[0]; // Simplest AI just targets first monster
+
+      // Select the action
+      get().selectAction(aiPlayer.id, monster.id, card, {
+        playerId: targetPlayer.id,
+        monsterId: targetMonster.id,
+      });
+    });
+  },
+
   selectAction: (playerId, monsterId, card, target) => {
     const actions = [...get().selectedActions];
+    const players = get().players;
 
+    // Remove any existing action for this player/monster
     // Remove any existing action for this player/monster
     const filteredActions = actions.filter(
       (action) =>
@@ -84,7 +135,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ selectedActions: filteredActions });
 
     // Log the selection
-    const players = get().players;
     const player = players.find((p) => p.id === playerId);
     const monster = player?.monsters.find((m) => m.id === monsterId);
     const targetPlayer = players.find((p) => p.id === target.playerId);
@@ -108,6 +158,21 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
 
     set({ actionLog });
+
+    // Check if all players have selected actions and automatically execute
+    const allPlayersSelected = players.every((player) =>
+      player.monsters.some((monster) =>
+        filteredActions.some(
+          (action) =>
+            action.playerId === player.id && action.monsterId === monster.id
+        )
+      )
+    );
+
+    if (allPlayersSelected) {
+      // All players have selected actions, execute automatically
+      get().startActionPhase();
+    }
   },
 
   startActionPhase: () => {
@@ -128,9 +193,19 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     actionLog.push("Executing actions...");
 
+    // Create deep copies of players and their monsters to avoid direct mutation
+    const updatedPlayers = players.map((player) => ({
+      ...player,
+      monsters: player.monsters.map((monster) => ({
+        ...monster,
+        stats: { ...monster.stats },
+      })),
+      hand: player.hand.map((card) => ({ ...card })),
+    }));
+
     // Create a mapping of monsters by player ID and monster ID for easy access
     const monstersMap = new Map();
-    players.forEach((player) => {
+    updatedPlayers.forEach((player) => {
       player.monsters.forEach((monster) => {
         monstersMap.set(`${player.id}-${monster.id}`, {
           monster,
@@ -267,14 +342,15 @@ export const useGameStore = create<GameState>((set, get) => ({
     });
 
     // End the action phase
+    // Update the state with deep copied objects
     set({
       isActionPhase: false,
       actionLog,
-      players: [...players], // Update players with the new monster stats
+      players: updatedPlayers,
+      selectedActions: [],
     });
-
     // Draw cards for used cards
-    players.forEach((player) => {
+    updatedPlayers.forEach((player) => {
       get().drawCard(player.id);
     });
 
